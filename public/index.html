@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Firebase-Tutorial</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
+    <link rel="stylesheet" href="css/custom.css">
+  </head>
+  <body>
+    <!-- header Top 영역 -->
+    <header class="navbar-fixed">
+        <nav>
+            <div class="nav-wrapper valign-wrapper">
+                <a href="#" id="aBackBtn" class="small material-icons left hiddendiv">arrow_back</a>
+                <span id="spTitle" class="brand-logo center">Firebase-Tutorial</span>
+                <a href="#dvAddUser" id="aInvite" class="small material-icons right hiddendiv modal-trigger">add</a>
+            </div>
+        </nav>
+    </header>
+    <!-- main 컨텐츠 영역 -->
+    <main>
+        <!-- 유저리스트탭 영역 -->
+        <div id="tab-1" class="col s12 tabContents">
+            <ul id="ulUserList" class="collection">
+            </ul>
+        </div>
+        <!-- 채팅방리스트탭 영역 -->
+        <div id="tab-2" class="col s12 tabContents" style="display: none">
+            <ul id="ulRoomList" class="collection">
+            </ul>
+        </div>
+        <!-- 설정탭 영역 -->
+        <div id="tab-3" class="col s12 tabContents">
+            <ul class="collection">
+                <li id="liLogOut" class="collection-item">로그아웃</li>
+            </ul>
+        </div>
+        <!-- 채팅방 메세지화면 영역 -->
+        <div id="tab-4" class="col s12 tabContents ">
+            <ul id="ulMessageList" class="collection">
+            </ul>
+            <div id="dvMsgForm" class="meta-bar chat">
+                <div id="dvInputChat" contenteditable="true" placeholder="메세지 작성"></div>
+                <i id='iBtnAttach' class="small material-icons">attach_file</i>
+                <i id='iBtnSend' class="small material-icons">send</i>
+                <input type="file" id="attachFile" style="display:none;"/>
+            </div>
+        </div>
+    </main>
+    <!-- footer 탭 영역 -->
+    <footer>
+        <ul id="tabs" class="tabs tabs-fixed-width">
+            <li class="tab col s3 blue darken-2"><a id="tabUserList" href="#tab-1"><i class="small material-icons white-text">person</i></a></li>
+            <li class="tab col s3 blue darken-2"><a id="tabRoomList" href="#tab-2"><i class="small material-icons white-text">message</i></a></li>
+            <li class="tab col s3 blue darken-2"><a id="tabSetting" href="#tab-3"><i class="small material-icons white-text">settings</i></a></li>
+            <li class="tab col s3" style="display:none"><a id="tabMessageList" href="#tab-4"></a></li>
+        </ul>
+    </footer>
+    <!-- 로그인 화면 및 가입화면 영역 -->
+    <div id="dvAuth">
+      <div id="dvLogin">
+          <h5>로그인</h5>
+          <div id="dvSocial">
+              <ul class="btnGroup">
+                  <li id="liGoogleBtn" class="waves-effect waves-teal btn-flat"><i></i>구글 계정으로 가입 및 로그인</li>
+                  <li id="liFacebookBtn" class="waves-effect waves-teal btn-flat"><i></i>페이스북 계정으로 가입 및 로그인</li>
+              </ul>
+              <em class="or">or</em>
+          </div>
+          <div id="dvEmail">
+              <input type="email" id="userName" name="userName" class="input-text" placeholder="이메일 아이디">
+              <input type="password" id="password" name="password" class="input-text" maxlength="17" placeholder="비밀번호">
+              <ul class="btnGroup">
+                  <li id="liEmailBtn" class="waves-effect waves-teal btn-flat">이메일으로 로그인</li>
+              </ul>
+              <ul class="btnGroup">
+                  <li id="liEmailJoin" class="waves-effect waves-teal btn-flat">이메일으로 가입</li>
+              </ul>
+          </div>
+      </div>
+      <div id="dvJoin">
+          <h5>이메일 가입</h5>
+          <input type="text" id="joinUserName" name="userName" class="input-text" placeholder="이름">
+          <input type="email" id="joinUserEmail" name="userName" class="input-text" placeholder="이메일 아이디">
+          <input type="password" id="joinPassword" name="password" class="input-text" maxlength="17" placeholder="비밀번호">
+          <input type="password" id="joinRePassword" class="input-text" maxlength="17" placeholder="비밀번호 확인">
+          <ul class="btnGroup">
+              <li id="liEmailJoinSubmit" class="waves-effect waves-teal btn-flat">이메일으로 가입</li>
+          </ul>
+      </div>
+    </div>
+    <!-- Modal 영역 -->
+    <div id="dnModal" class="modal col s4">
+        <div class="modal-content">
+            <h5>업로드</h5>
+            <div class="progress">
+                <div id="dvProgressBar" class="determinate"></div>
+                <div id="dvFileName"></div>
+            </div>
+        </div>
+    </div>
+    <div id="dvAddUser" class="modal">
+        <div class="modal-content">
+          <h5>초대</h5>
+          <ul id="ulAddUserList" class="collection">
+          </ul>
+        </div>
+        <div class="modal-footer">
+            <a id="aConfirmInvite" href="#!" class="modal-action modal-close waves-effect waves-green btn blue white-text">추가</a>
+        </div>
+    </div>
+    <!-- template 영역 -->
+    <!-- template 유저리스트 영역 -->
+    <script type="text/template" id="templateUserList">
+            <li id="li<%=targetUserUid %>" data-targetUserUid="<%=targetUserUid %>" data-username="<%=userName %>" class="collection-item avatar list">
+                <img src="<%=profileImg ? profileImg : 'img/noprofile.png'  %>" alt="" class="circle">
+                <span class="title"><%=userName %></span>
+                <span class="small material-icons right hiddendiv done">done</span>
+                <span class="small material-icons right hiddendiv mood yellow-text">mood</span>
+            </li>
+    </script>
+    <!-- template 메세지리스트 영역 -->
+    <script type="text/template" id="templateMessageList">
+        <li id="li<%=key%>" class="collection-item avatar" data-key="<%=key%>">
+            <img src="<%=profileImg ? profileImg : 'img/noprofile.png'  %>" alt="" class="circle">
+            <span class="title"><%=userName %></span><span class="time"><%=time %></span>
+            <p><%=message %></p>
+        </li>
+    </script>
+    <!-- template 채팅방리스트 영역 -->
+    <script type="text/template" id="templateRoomList">
+        <li id="liRoom<%=roomId %>" data-roomId="<%=roomId %>" data-roomTitle='<%=roomTitle%>' data-roomUserName="<%=roomUserName%>"
+            data-roomType="<%=roomType%>" data-roomOneVSOneTarget="<%=roomOneVSOneTarget%>" data-roomUserlist="<%=roomUserlist %>" class="collection-item avatar" >
+            <img src="<%=profileImg ? profileImg : 'img/noprofile.png'  %>" alt="" class="circle">
+            <span class="title"><%=roomTitle%></span>
+            <p><%=lastMessage %></p>
+            <a href="#!" class="secondary-content"> <%=datetime %></a>
+        </li>
+    </script>
+      <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+      <script type="text/javascript" src="js/materialize.min.js"></script>
+      <script type="text/javascript" src="js/underscore-min.js"></script>
+      <!-- update the version number as needed -->
+      <script defer src="/__/firebase/4.6.1/firebase-app.js"></script>
+      <script defer src="/__/firebase/4.6.1/firebase-auth.js"></script>
+      <script defer src="/__/firebase/4.6.1/firebase-database.js"></script>
+      <script defer src="/__/firebase/4.6.1/firebase-messaging.js"></script>
+      <script defer src="/__/firebase/4.6.1/firebase-storage.js"></script>
+      <script defer src="/__/firebase/init.js"></script>
+      <script>
+		  /**
+           *  FirebaseChat ES5 클래스
+           */
+          function FirebaseChat(){
+              this.init();
+              this.initEvent();
+          }
+
+          /**
+           * 초기 필드 변수 할당
+           */
+          FirebaseChat.prototype.init = function(){
+              this.auth = firebase.auth();
+              this.liGoogleBtn = document.getElementById('liGoogleBtn');
+			  
+			   this.dvAuth = document.getElementById('dvAuth'); //인증정보 추가
+			   this.liLogOut = document.getElementById('liLogOut'); // 로그아웃 
+			   this.INDEXDB_DB_NAME = "USER"; 
+			   this.INDEXDB_VERSION = 1; 
+			   this.INDEXDB_STORE ="Users";
+
+
+          }
+
+		  /**
+           * User데이터를 IndexedDB에 저장 및 데이터 변경
+           */
+          FirebaseChat.prototype.saveUserAtIndexedDB = function(user, userName, isSave){
+              if(indexedDB){
+                  var request = indexedDB.open(this.INDEXDB_DB_NAME , this.INDEXDB_VERSION); // 데이터베이스 접근 요청
+                  var objectName = this.INDEXDB_STORE
+                  request.onupgradeneeded = function(){  // 데이터 베이스 생성 또는 버전 업그레이드 시 수행
+                      var db = request.result; //데이터 베이스 객체
+                      var store  = db.createObjectStore(objectName, {keyPath :"uid"}); // 테이블에 해당하는 Object 생성 및 키값 설정
+                  }
+                  request.onsuccess = function() {  // 데이터베이스 접근 요청이 성공 시
+                      var db = request.result;
+                      var tx = db.transaction(objectName, "readwrite"); //읽기쓰기 권한으로 트랜잭션을 얻음
+                      var store = tx.objectStore(objectName);
+
+                      store.get(user.uid).onsuccess = function(event){  //user.uid 기준으로 IndexedDB 데이터를 읽어온다
+                          var data = event.target.result;
+                          console.log('IndexedDB query 결과 : ', data);
+                          console.log('saveUserAtIndexedDB isSave 파라미터', isSave);
+                          if(!data){  //데이터가 없으면 저장
+                              store.put({ 
+                                  uid: user.uid
+                                  , email: user.email
+                                  , photoURL : user.photoURL ? user.photoURL : ''
+                                  , displayName : userName ? userName : user.displayName
+                                  , isSave : false
+                              });
+                          }
+
+                          if(data && isSave){  // 데이터가 존재하고 isSave 파라미터 true이면 데이터를 업데이트
+                              store.put({  
+                                  uid: user.uid
+                                  , email: user.email
+                                  , photoURL : user.photoURL ? user.photoURL : ''
+                                  , displayName : userName ? userName : user.displayName
+                                  , isSave : true
+                              });
+                          }
+                      }
+                      tx.oncomplete = function() {
+                          console.log('IndexedDB 트랜잭션 완료')
+                          db.close();
+                      };
+                  }
+              }
+          }
+
+
+
+
+
+
+          /**
+           * 초기 이벤트 바인딩
+           */
+          FirebaseChat.prototype.initEvent = function(){
+              this.liGoogleBtn.addEventListener('click', this.onGoogleBtnClick.bind(this));
+              this.auth.onAuthStateChanged(this.onAuthChange.bind(this));
+			  this.liLogOut.addEventListener('click', this.logOut.bind(this));
+          }
+
+          /**
+           * Google 로그인 버튼 클릭
+           */
+          FirebaseChat.prototype.onGoogleBtnClick = function(){
+              var googleProvider = new firebase.auth.GoogleAuthProvider();
+              this.auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+                  .then(this.signInWithPopup.bind(this, googleProvider))
+                  .catch(function(error) {
+                      console.error('인증 상태 설정 중 에러 발생' , error);
+                  });
+          }
+
+          /**
+           * 로그아웃 되어 onAuthStateChange 에 감지 된 후 동작
+           */
+          FirebaseChat.prototype.setLogOut = function(){
+              this.dvAuth.style.display = 'block';
+              this.dvJoin.style.display='none';
+              this.dvLogin.style.display = 'block';
+          }
+
+
+          /**
+           * 지속성 설정 후 sign-in 팝업창
+           */
+          FirebaseChat.prototype.signInWithPopup = function(provider) {
+              var cbSignIn = function(result){
+                  console.log('로그인 성공')
+				  this.saveUserAtIndexedDB(result.user, null , false);  //user object를 파라미터로 받게됨 
+              }
+
+              return  this.auth.signInWithPopup(provider).then(cbSignIn.bind(this)).catch(function(error) {
+                  alert('로그인에 실패하였습니다');
+                  console.error('로그인 에러',error);
+              });
+          }
+
+          /**
+           * 인증 정보가 변화 되었을 시에 변화
+           */
+          FirebaseChat.prototype.onAuthChange = function(user){
+              if (user) {
+                  console.log('user로그인 : ',JSON.stringify(user));
+				  this.setLogin(user);
+              } else { 
+                  console.log('로그아웃');
+				  this.setLogOut();
+              }
+          }
+		 
+		 /**
+           *  로그인 후 세팅
+           */
+          FirebaseChat.prototype.setLogin = function(user){	//user 파라미터 추가 
+              this.database = firebase.database(); // 인증 받은 후 초기화 하여야 합니다. 필드 변수에 서 할당하면 인증 받기전에 할당이라 에러발생
+              this.database.goOnline(); // 데이터베이스를 명시적으로 온라인
+              this.dvAuth.style.display = 'none';
+			  this.checkAndSaveUser(user);
+          }
+		
+		  /**
+           * 신규 User를 IndexedDB에서 체크 후 저장
+           */
+          FirebaseChat.prototype.checkAndSaveUser = function(user){
+              try{
+                  var request = indexedDB.open(this.INDEXDB_DB_NAME , this.INDEXDB_VERSION);
+                  var objectName = this.INDEXDB_STORE;
+                  request.onsuccess = function() {
+                      var db = request.result;					  
+                      var tx = db.transaction(objectName, "readwrite");
+                      var store = tx.objectStore(objectName);
+
+                      store.get(user.uid).onsuccess = function(event){ // indexedDB에서 uid값으로 쿼리
+                          var data = event.target.result;
+                          console.log('IndexedDB query 결과 : ', data);
+                          console.log('checkAndSaveUser isSave' , data.isSave);
+                          if(!data.isSave){
+                              fbChat.saveUserAtRealDB(data);
+                          }
+                      }
+                      tx.oncomplete = function() {
+                          console.log('IndexedDB 트랜잭션 완료')
+                          db.close();
+                      };
+                  }
+              }catch(e){
+                  this.saveUserAtRealDB(user); //indexDB 확인에 실패 하면 Reatime Database 조회 후 
+              }
+          }
+		  
+		  
+		   /**
+           *  Realtime Database에서 Users 데이터를 체크 후 저장
+           */
+          FirebaseChat.prototype.saveUserAtRealDB = function(user){
+              var userRef = this.database.ref('Users/' + user.uid);
+              var cbUserRefResult = function(dataSnapShot){ // User Ref에 데이터가 없을 경우 데이터 저장
+                  if(!dataSnapShot.hasChildren()){
+                      console.log('saveUserAtRealDB 저장');
+                      userRef.set({  //데이터 저장
+                          email: user.email
+                          , profileImg: user.photoURL ? user.photoURL : ''
+                          , userName : user.displayName
+                      }).then(cbUserAfterSave.bind(this));
+                  }
+              }
+              var cbUserAfterSave = function(){ //Realtime Database에 저장이 완료된 후 로컬 IndexedDB isSave 값을 true로 변경
+                  this.saveUserAtIndexedDB(user, null, true);
+              }
+
+              userRef.once('value')  // 1회만 검색하고 변경데이터를 수신하지 않음
+                  .then(cbUserRefResult.bind(this));
+          }
+
+		
+		  /**
+           * 로그아웃 버튼 클릭
+           */
+          FirebaseChat.prototype.logOut = function(){
+              if(confirm('로그아웃 하시겠습니까?')){
+                  if(this.database){
+                      this.database.goOffline(); // 데이터 베이스를 명시적으로 오프라인
+                  }
+                  this.auth.signOut();
+              }
+          }
+		  
+
+          /**
+           * 로그아웃 되어 onAuthStateChange 에 감지 된 후 동작
+           */
+          FirebaseChat.prototype.setLogOut = function(){
+              this.dvAuth.style.display = 'block';
+              this.dvJoin.style.display='none';
+              this.dvLogin.style.display = 'block';
+          }
+		  
+		  
+	
+          /**
+           * Dom 로딩 후 동작
+           */
+          document.addEventListener('DOMContentLoaded', function() {
+              //FirebaseChat 클래스 초기화
+              window.fbChat = new FirebaseChat();
+
+              //다운로드 프로그레스 팝업 modal 설정
+              $('#dnModal').modal();
+              //채팅방 초대 modal 설정
+              $('#dvAddUser').modal();
+          });
+		  
+		  
+		  
+		  
+      </script>
+  </body>
+</html>
